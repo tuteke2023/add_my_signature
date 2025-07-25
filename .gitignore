@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+*.pdf
+!Invoice INV-10508.pdf
+signature.png
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
