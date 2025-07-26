@@ -17,7 +17,6 @@ ENV/
 
 # Project specific
 *.pdf
-!Invoice INV-10508.pdf
 signature.png
 *.log
 
