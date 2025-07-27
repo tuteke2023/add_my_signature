@@ -9,6 +9,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import tempfile
 import pdf2image
+from streamlit_drawable_canvas import st_canvas
+import numpy as np
 
 st.set_page_config(page_title="PDF Signature Tool", page_icon="✍️", layout="wide")
 
@@ -110,15 +112,50 @@ with col1:
     st.header("📄 Upload PDF")
     uploaded_pdf = st.file_uploader("Choose a PDF file", type="pdf")
     
-    st.header("✍️ Upload Signature")
-    uploaded_signature = st.file_uploader("Choose your signature image", type=["png", "jpg", "jpeg"])
+    st.header("✍️ Signature")
+    signature_method = st.radio("Choose signature method:", ["Upload Image", "Draw Signature"])
     
-    if uploaded_signature:
-        sig_image = Image.open(uploaded_signature)
-        st.image(sig_image, caption="Your Signature", width=200)
+    uploaded_signature = None
+    drawn_signature = None
+    
+    if signature_method == "Upload Image":
+        uploaded_signature = st.file_uploader("Choose your signature image", type=["png", "jpg", "jpeg"])
+        
+        if uploaded_signature:
+            sig_image = Image.open(uploaded_signature)
+            st.image(sig_image, caption="Your Signature", width=200)
+    
+    else:  # Draw Signature
+        st.write("Draw your signature below:")
+        # Create a canvas component
+        canvas_result = st_canvas(
+            fill_color="rgba(255, 255, 255, 0)",  # Transparent fill
+            stroke_width=3,
+            stroke_color="#000000",
+            background_color="#FFFFFF",
+            height=150,
+            width=400,
+            drawing_mode="freedraw",
+            key="canvas",
+        )
+        
+        # Convert canvas to image if there's drawing
+        if canvas_result.image_data is not None:
+            # Check if there's actual drawing (not just blank canvas)
+            if np.any(canvas_result.image_data[:, :, 3] > 0):
+                # Convert to PIL Image
+                drawn_image = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
+                drawn_signature = drawn_image
+                st.image(drawn_image, caption="Your Drawn Signature", width=200)
+        
+        if st.button("Clear Signature"):
+            st.rerun()
 
 with col2:
-    if uploaded_pdf and uploaded_signature:
+    # Check if we have a signature (either uploaded or drawn)
+    has_signature = uploaded_signature is not None or drawn_signature is not None
+    
+    if uploaded_pdf and has_signature:
         st.header("📍 Position Your Signature")
         
         # Convert PDF to image for preview
@@ -150,7 +187,10 @@ with col2:
             preview_img = pdf_image.copy()
             
             # Overlay signature on preview
-            sig_img = Image.open(uploaded_signature)
+            if uploaded_signature:
+                sig_img = Image.open(uploaded_signature)
+            else:
+                sig_img = drawn_signature
             sig_img = sig_img.resize((150, 50), Image.Resampling.LANCZOS)
             
             # Calculate position for preview
@@ -185,7 +225,10 @@ with col2:
                     
                     # Process the PDF
                     uploaded_pdf.seek(0)  # Reset file pointer
-                    sig_image = Image.open(uploaded_signature)
+                    if uploaded_signature:
+                        sig_image = Image.open(uploaded_signature)
+                    else:
+                        sig_image = drawn_signature
                     signed_pdf = add_signature_to_pdf(
                         uploaded_pdf,
                         sig_image,
@@ -206,7 +249,7 @@ with col2:
                         mime="application/pdf"
                     )
     else:
-        st.info("👈 Please upload both a PDF file and your signature image to begin")
+        st.info("👈 Please upload a PDF file and provide a signature (upload or draw) to begin")
 
 # Footer
 st.markdown("---")
