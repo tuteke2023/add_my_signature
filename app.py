@@ -140,7 +140,7 @@ with col2:
             with col_y:
                 # Invert Y for display (PDF coordinates are bottom-up)
                 y_display = st.slider("Vertical Position", 0, int(img_height * 0.8), 
-                                     value=int(img_height * 0.8) - st.session_state.signature_y, key="y_slider")
+                                     value=100, key="y_slider")
                 st.session_state.signature_y = int(img_height * 0.8) - y_display
             
             # Show preview with signature position
@@ -169,12 +169,27 @@ with col2:
             # Process button
             if st.button("🎯 Sign PDF", type="primary"):
                 with st.spinner("Processing..."):
+                    # Get PDF page dimensions
+                    reader = PdfReader(uploaded_pdf)
+                    page = reader.pages[0]
+                    page_box = page.mediabox
+                    pdf_width = float(page_box.width)
+                    pdf_height = float(page_box.height)
+                    
+                    # Scale coordinates from image to PDF
+                    scale_x = pdf_width / img_width
+                    scale_y = pdf_height / img_height
+                    
+                    pdf_x = st.session_state.signature_x * scale_x
+                    pdf_y = st.session_state.signature_y * scale_y
+                    
                     # Process the PDF
+                    uploaded_pdf.seek(0)  # Reset file pointer
                     sig_image = Image.open(uploaded_signature)
                     signed_pdf = add_signature_to_pdf(
                         uploaded_pdf,
                         sig_image,
-                        (st.session_state.signature_x, st.session_state.signature_y)
+                        (pdf_x, pdf_y)
                     )
                     
                     # Offer download
