@@ -37,9 +37,9 @@ def create_signature_overlay(signature_image, date_text, position, page_size):
         sig_x, sig_y = position
         c.drawImage(tmp_file_path, sig_x, sig_y, width=150, height=50, preserveAspectRatio=True)
         
-        # Add date below signature (aligned with left edge of signature)
+        # Add date below signature
         c.setFont("Helvetica", 10)
-        c.drawString(sig_x, sig_y - 5, date_text)
+        c.drawString(sig_x + 30, sig_y - 10, date_text)
     finally:
         # Clean up temp file
         os.unlink(tmp_file_path)
