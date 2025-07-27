@@ -175,10 +175,10 @@ with col2:
                 st.session_state.signature_x = x_pos
             
             with col_y:
-                # Invert Y for display (PDF coordinates are bottom-up)
-                y_display = st.slider("Vertical Position", 0, int(img_height * 0.8), 
-                                     value=100, key="y_slider")
-                st.session_state.signature_y = int(img_height * 0.8) - y_display
+                # Y slider (top to bottom for user convenience)
+                y_pos = st.slider("Vertical Position", 0, int(img_height * 0.8), 
+                                 value=100, key="y_slider")
+                st.session_state.signature_y = y_pos
             
             # Show preview with signature position
             st.subheader("Preview")
@@ -194,8 +194,8 @@ with col2:
             sig_img = sig_img.resize((150, 50), Image.Resampling.LANCZOS)
             
             # Calculate position for preview
-            preview_x = x_pos
-            preview_y = y_display
+            preview_x = st.session_state.signature_x
+            preview_y = st.session_state.signature_y
             
             # Paste signature on preview
             if sig_img.mode == 'RGBA':
@@ -220,8 +220,9 @@ with col2:
                     scale_x = pdf_width / img_width
                     scale_y = pdf_height / img_height
                     
+                    # Convert coordinates - PDF Y axis is bottom-up, image Y axis is top-down
                     pdf_x = st.session_state.signature_x * scale_x
-                    pdf_y = st.session_state.signature_y * scale_y
+                    pdf_y = pdf_height - (st.session_state.signature_y * scale_y) - (50 * scale_y)  # 50 is signature height
                     
                     # Process the PDF
                     uploaded_pdf.seek(0)  # Reset file pointer
