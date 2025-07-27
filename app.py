@@ -39,7 +39,7 @@ def create_signature_overlay(signature_image, date_text, position, page_size):
         
         # Add date below signature
         c.setFont("Helvetica", 10)
-        c.drawString(sig_x + 30, sig_y - 10, date_text)
+        c.drawString(sig_x + 45, sig_y - 10, date_text)
     finally:
         # Clean up temp file
         os.unlink(tmp_file_path)
